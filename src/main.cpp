@@ -7,9 +7,10 @@
 
 TTGOClass *ttgo;
 int updateTimer = 0;
+int sleepTimer = 0;
 bool irq = false;
 
-std::vector<App*> apps = {new FlappyBird()};
+std::vector<App*> apps = { new FlappyBird() };
 
 void drawTime(){
 	ttgo->tft->setTextColor(TFT_WHITE, TFT_BLACK);
@@ -19,7 +20,6 @@ void drawTime(){
 	ttgo->tft->print("%");
 	ttgo->tft->setTextSize(1);
 	ttgo->tft->drawString(ttgo->rtc->formatDateTime(PCF_TIMEFORMAT_HM), 40, 60, 7);
-	updateTimer = ttgo->rtc->getDateTime().second;
 }
 
 void setup() {
@@ -27,17 +27,13 @@ void setup() {
 	
     ttgo = TTGOClass::getWatch();
     ttgo->begin();
-
+    ttgo->motor_begin();
     ttgo->openBL();
     ttgo->setBrightness(128);       // 0~255
-
-    drawTime();
-
-    updateTimer = ttgo->rtc->getDateTime().second;
+    sleepTimer = ttgo->rtc->getDateTime().second;
 
   	// button interrupt
     pinMode(AXP202_INT, INPUT_PULLUP);
-
     attachInterrupt(AXP202_INT, [] {
         irq = true;
     }, FALLING);
@@ -45,12 +41,32 @@ void setup() {
     //  Clear interrupt status
     ttgo->power->clearIRQ();
 
-    ttgo->motor_begin();
-
+    drawTime();
 }
 
 void loop() {
 	ttgo->power->clearIRQ();
+
+	int16_t x, y;
+	if (ttgo->getTouch(x, y)) {
+		sleepTimer = ttgo->rtc->getDateTime().second;
+	}
+
+	int timeDiff = ttgo->rtc->getDateTime().second - sleepTimer;
+	if(timeDiff < 0) timeDiff += 60;
+
+	if (timeDiff > 5){
+		ttgo->displaySleep();
+		ttgo->power->setPowerOutPut(AXP202_LDO3, false);
+		ttgo->power->setPowerOutPut(AXP202_LDO4, false);
+		ttgo->power->setPowerOutPut(AXP202_LDO2, false);
+		// The following power channels are not used
+		ttgo->power->setPowerOutPut(AXP202_EXTEN, false);
+		ttgo->power->setPowerOutPut(AXP202_DCDC2, false);
+
+		esp_sleep_enable_ext1_wakeup(GPIO_SEL_35, ESP_EXT1_WAKEUP_ALL_LOW);
+		esp_deep_sleep_start();
+	}
 
 	for (App* app : apps) {
 		app->update();
