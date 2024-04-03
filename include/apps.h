@@ -2,10 +2,10 @@
 
 #include <string>
 
-class FlappyBird : public App {
+class Settings: public App {
 public:
-    FlappyBird()
-        : App("Flappy Bird")
+    Settings()
+        : App("Settings")
     {}
 
     virtual void update() override {

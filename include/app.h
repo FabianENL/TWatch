@@ -4,11 +4,13 @@
 
 class App {
 public:
-    App(const std::string& name)
+    App(const String& name)
         : m_name(name) {}
 
     virtual void update() = 0;
     virtual void render() = 0;
+
+    String getName() const { return m_name; }
 private:
-    std::string m_name;
+    String m_name;
 };

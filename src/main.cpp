@@ -10,7 +10,7 @@ int updateTimer = 0;
 int sleepTimer = 0;
 bool irq = false;
 
-std::vector<App*> apps = { new FlappyBird() };
+std::vector<App*> apps = { new Settings() };
 
 void drawTime(){
 	ttgo->tft->setTextColor(TFT_WHITE, TFT_BLACK);
@@ -19,7 +19,7 @@ void drawTime(){
 	ttgo->tft->print(ttgo->power->getBattPercentage());
 	ttgo->tft->print("%");
 	ttgo->tft->setTextSize(1);
-	ttgo->tft->drawString(ttgo->rtc->formatDateTime(PCF_TIMEFORMAT_HM), 40, 60, 7);
+	ttgo->tft->drawCentreString(ttgo->rtc->formatDateTime(PCF_TIMEFORMAT_HM), 120, 60, 7);
 }
 
 void setup() {
@@ -69,10 +69,6 @@ void loop() {
 	}
 
 	for (App* app : apps) {
-		app->update();
-	}
-
-	for (App* app : apps) {
-		app->render();
+		ttgo->tft->drawCentreString(app->getName(), 120, 0, 2);
 	}
 }
