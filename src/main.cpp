@@ -5,12 +5,23 @@
 #include "app.h"
 #include "apps.h"
 
+namespace Menu {
+	enum Menu {
+		None = 0,
+		Home,
+		Apps,
+	};
+}
+
 TTGOClass *ttgo;
 int updateTimer = 0;
 int sleepTimer = 0;
 bool irq = false;
+int16_t scrollY;
+int16_t prevX, prevY;
+Menu::Menu menu = Menu::Home;
 
-std::vector<App*> apps = { new Settings() };
+std::vector<App*> apps = { new Settings(), new Weather(), new Tools(), new Settings(), new Weather(), new Tools() };
 
 void drawTime(){
 	ttgo->tft->setTextColor(TFT_WHITE, TFT_BLACK);
@@ -44,18 +55,49 @@ void setup() {
     drawTime();
 }
 
+void renderApps(int16_t scrollY) {
+	int textHeight = ttgo->tft->fontHeight(4);
+	int height = textHeight * 3;;
+	for (int i = 0; i < apps.size(); i++) {
+		int y = scrollY + i * height;
+		if (y > 0 && y < 240 - textHeight) {
+			ttgo->tft->drawCentreString(apps[i]->getName(), 120, y, 4);
+		}
+	}
+}
+
 void loop() {
 	ttgo->power->clearIRQ();
 
 	int16_t x, y;
 	if (ttgo->getTouch(x, y)) {
 		sleepTimer = ttgo->rtc->getDateTime().second;
+		if (menu == Menu::Home) {
+			menu = Menu::Apps;
+			ttgo->tft->fillScreen(TFT_BLACK);
+		}
+	
+		if (prevX != 0 && prevY) {
+			if (menu == Menu::Apps) {
+				scrollY += y - prevY;
+			}
+		} 
+		prevX = x;
+		prevY = y;
+	} else {
+		prevX = 0;
+		prevY = 0;
 	}
 
+	if (menu == Menu::Apps) {
+		renderApps(scrollY);
+	}
+	
+	// After 5 seconds, shutdown
 	int timeDiff = ttgo->rtc->getDateTime().second - sleepTimer;
-	if(timeDiff < 0) timeDiff += 60;
+	if (timeDiff < 0) timeDiff += 60;
 
-	if (timeDiff > 5){
+	if (timeDiff > 5) {
 		ttgo->displaySleep();
 		ttgo->power->setPowerOutPut(AXP202_LDO3, false);
 		ttgo->power->setPowerOutPut(AXP202_LDO4, false);
@@ -66,9 +108,5 @@ void loop() {
 
 		esp_sleep_enable_ext1_wakeup(GPIO_SEL_35, ESP_EXT1_WAKEUP_ALL_LOW);
 		esp_deep_sleep_start();
-	}
-
-	for (App* app : apps) {
-		ttgo->tft->drawCentreString(app->getName(), 120, 0, 2);
 	}
 }
