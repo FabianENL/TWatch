@@ -4,8 +4,8 @@
 
 class Tools : public App {
 public:
-    Tools()
-        : App("Tools")
+    Tools(TTGOClass* ttgo)
+        : App("Tools", ttgo)
     {}
 
     virtual void update() override;

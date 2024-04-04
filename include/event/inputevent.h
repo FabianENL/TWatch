@@ -7,17 +7,26 @@
 class MoveEvent : public Event
 {
 public:
-    MoveEvent(int16_t x, int16_t y)
+    MoveEvent(int16_t x, int16_t y, int16_t startX, int16_t startY)
         : m_x(x), m_y(y) {}
 
     inline int16_t getX() const { return m_x; }
     inline int16_t getY() const { return m_y; }
     inline std::pair<int16_t, int16_t> getPos() const { return std::make_pair(m_x, m_y); }
 
+    inline int16_t getStartX() const { return m_startX; }
+    inline int16_t getStartY() const { return m_startY; }
+    inline std::pair<int16_t, int16_t> getStartPos() const { return std::make_pair(m_startX, m_startY); }
+
+    inline int16_t getDeltaX() const { return m_x - m_startX; }
+    inline int16_t getDeltaY() const { return m_y - m_startY; }
+    inline std::pair<int16_t, int16_t> getDeltaPos() const { return std::make_pair(m_x - m_startX, m_x - m_startY); }
+
 	EVENT_CLASS_TYPE(Move)
     EVENT_CLASS_CATEGORY(EventCategoryInput)
 private:
     int16_t m_x, m_y;
+    int16_t m_startX, m_startY;
 };
 
 class PressEvent : public Event

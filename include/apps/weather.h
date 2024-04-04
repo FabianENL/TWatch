@@ -4,8 +4,8 @@
 
 class Weather : public App {
 public:
-    Weather()
-        : App("Weather")
+    Weather(TTGOClass* ttgo)
+        : App("Weather", ttgo)
     {}
 
     virtual void update() override;

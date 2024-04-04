@@ -4,8 +4,8 @@
 
 class Settings : public App {
 public:
-    Settings()
-        : App("Settings")
+    Settings(TTGOClass* ttgo)
+        : App("Settings", ttgo)
     {}
 
     virtual void update() override;

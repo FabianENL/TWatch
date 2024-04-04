@@ -1,21 +1,24 @@
 #pragma once
 
+#define LILYGO_WATCH_2020_V3
+#include <LilyGoWatch.h>
+#include <Arduino.h>
+
 #include "event/event.h"
-
-#include <string>
-
-#define BIND_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 class App {
 public:
-    App(const String& name)
-        : m_name(name) {}
+    App(const String& name, TTGOClass* ttgo)
+        : m_name(name), m_ttgo(ttgo) {}
 
+    virtual void init() {}
     virtual void onEvent(Event& event) {}
     virtual void update() {}
     virtual void render() {}
 
     String getName() const { return m_name; }
+protected:
+    TTGOClass* m_ttgo;
 private:
     String m_name;
 };

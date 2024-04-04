@@ -1,6 +1,9 @@
 #pragma once
 
-#include <string>
+#include <Arduino.h>
+#include <functional>
+
+#define BIND_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 
 enum class EventType
 {
@@ -34,16 +37,16 @@ public:
 };
 
 class EventDispatcher
-{
+{	
+    template<typename T>
+	using EventFn = std::function<bool(T&)>;
 public:
     EventDispatcher(Event& event)
         : m_event(event) {}
 
-    template<typename T, typename F>
-    bool dispatch(const F& func)
-    {
-        if (m_event.getEventType() == T::getStaticType())
-        {
+    template<typename T>
+    bool dispatch(EventFn<T> func) {
+        if (m_event.getEventType() == T::getStaticType()) {
             m_event.handled = func(static_cast<T&>(m_event));
             return true;
         }
