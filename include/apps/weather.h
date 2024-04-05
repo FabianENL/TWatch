@@ -4,10 +4,10 @@
 
 class Weather : public App {
 public:
-    Weather(TTGOClass* ttgo)
-        : App("Weather", ttgo)
-    {}
+    Weather()
+        : App("Weather")
+    {
+    }
 
     virtual void update() override;
-    virtual void render() override;
 };

@@ -1,24 +1,29 @@
 #pragma once
 
-#define LILYGO_WATCH_2020_V3
-#include <LilyGoWatch.h>
-#include <Arduino.h>
-
+#include "core.h"
 #include "event/event.h"
+
+#include <vector>
 
 class App {
 public:
-    App(const String& name, TTGOClass* ttgo)
-        : m_name(name), m_ttgo(ttgo) {}
+    App(const String& name)
+        : m_name(name)
+    {
+    }
 
-    virtual void init() {}
-    virtual void onEvent(Event& event) {}
-    virtual void update() {}
-    virtual void render() {}
+    virtual void init() { }
+    virtual void onEvent(Event& event) { }
+    virtual void update() { }
+
+    void registerLvObj(lv_obj_t* obj)
+    {
+        m_objects.push_back(obj);
+    }
 
     String getName() const { return m_name; }
-protected:
-    TTGOClass* m_ttgo;
+    const std::vector<lv_obj_t*>& getObjects() const { return m_objects; }
 private:
     String m_name;
+    std::vector<lv_obj_t*> m_objects;
 };

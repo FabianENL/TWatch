@@ -4,10 +4,10 @@
 
 class Settings : public App {
 public:
-    Settings(TTGOClass* ttgo)
-        : App("Settings", ttgo)
-    {}
+    Settings()
+        : App("Settings")
+    {
+    }
 
     virtual void update() override;
-    virtual void render() override;
 };
