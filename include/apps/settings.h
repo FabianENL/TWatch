@@ -65,6 +65,7 @@ private:
 class Settings : public App {
 public:
     static Config config;
+    static bool forceOn;
 
     Settings()
         : App("Settings")

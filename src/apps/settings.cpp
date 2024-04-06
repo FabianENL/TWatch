@@ -1,6 +1,7 @@
 #include "apps/settings.h"
 
 Config Settings::config = {};
+bool Settings::forceOn = false;
 
 void Config::save()
 {

@@ -44,6 +44,11 @@ public:
         lv_obj_set_event_cb(btn, callback);
     }
 
+    void clear()
+    {
+        lv_list_clean(m_listObj);
+    }
+
     void align(const lv_obj_t* base, lv_align_t align, lv_coord_t x = 0, lv_coord_t y = 0) { lv_obj_align(m_listObj, base, align, x, y); }
     void hidden(bool en = true) { lv_obj_set_hidden(m_listObj, en); }
     void setCallback(list_event_cb cb) { m_callback = cb; }

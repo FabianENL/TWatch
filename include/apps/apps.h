@@ -21,7 +21,7 @@ public:
     virtual void init() override;
 
 private:
-    void listCallback(String txt);
+    void callback(String txt);
 
 private:
     int16_t m_scrollY;

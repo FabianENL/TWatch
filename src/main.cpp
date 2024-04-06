@@ -38,6 +38,7 @@ lv_obj_t* background = nullptr;
 void home()
 {
     menu = Menu::Home;
+    Settings::forceOn = false;
     if (Apps::activeApp)
         lv_obj_set_hidden(Apps::activeApp->getParent(), true);
 }
@@ -140,6 +141,9 @@ void loop()
 {
     uint64_t start = millis();
 
+    if (Settings::forceOn)
+        sleepTimer = ttgo->rtc->getDateTime().second;
+
     ttgo->power->clearIRQ();
 
     uint8_t data;
@@ -167,7 +171,7 @@ void loop()
     if (timeDiff < 0)
         timeDiff += 60;
 
-    if (timeDiff > 5) {
+    if (timeDiff > 5 && !Settings::forceOn) {
         turn_off();
         return;
     }
@@ -202,6 +206,7 @@ void loop()
             // On Release Event
             if (menu == Menu::Home) {
                 Apps::activeApp = Apps::apps[0];
+                Settings::forceOn = false;
                 menu = Menu::App;
             }
 
@@ -234,6 +239,7 @@ void loop()
     prevPressing = pressing;
 
     if (menu == Menu::Home) {
+        Settings::forceOn = false;
         lv_obj_set_hidden(background, false);
         for (App* app : Apps::apps)
             lv_obj_set_hidden(app->getParent(), true);
