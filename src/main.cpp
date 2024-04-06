@@ -4,6 +4,7 @@
 #include "apps/apps.h"
 #include "elements/battery.h"
 #include "elements/clock.h"
+#include "elements/switch.h"
 #include "event/inputevent.h"
 
 enum {
@@ -112,6 +113,8 @@ void setup()
 
     for (App* app : Apps::apps) {
         lv_obj_t* parent = lv_obj_create(lv_scr_act(), NULL);
+        lv_obj_set_style_local_border_width(parent, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+        lv_obj_set_style_local_radius(parent, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
         lv_obj_set_size(parent, 240, 240);
         lv_obj_set_hidden(parent, true);
         app->preinit(parent);

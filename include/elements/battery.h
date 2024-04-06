@@ -4,6 +4,13 @@
 
 class Battery {
 public:
+    ~Battery()
+    {
+        lv_obj_del(m_panel);
+        lv_obj_del(m_image);
+        lv_obj_del(m_percentage);
+    }
+
     void init(lv_obj_t* parent, lv_align_t align = LV_ALIGN_CENTER, lv_coord_t x = 0, lv_coord_t y = 0)
     {
         m_panel = lv_obj_create(parent, NULL);

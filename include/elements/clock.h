@@ -6,6 +6,14 @@ LV_FONT_DECLARE(morgnite_bold_64);
 
 class ClockDisplay {
 public:
+    ~ClockDisplay()
+    {
+        lv_obj_del(m_panel);
+        lv_obj_del(m_hour);
+        lv_obj_del(m_minute);
+        lv_obj_del(m_second);
+    }
+
     void init(lv_obj_t* parent, lv_align_t align = LV_ALIGN_CENTER, lv_coord_t x = 0, lv_coord_t y = 0)
     {
         RTC_Date curr_datetime = ttgo->rtc->getDateTime();
