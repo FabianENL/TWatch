@@ -18,7 +18,6 @@ void Apps::init()
 
 void Apps::listCallback(String txt)
 {
-    Serial.printf("Opening app: %s\n", txt.c_str());
     for (size_t i = 1; i < apps.size(); ++i) {
         App* app = apps[i];
         if (txt.compareTo(app->getName()) == 0) {

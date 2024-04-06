@@ -2,6 +2,7 @@
 
 #include "app.h"
 #include "apps/apps.h"
+#include "apps/settings.h"
 #include "elements/battery.h"
 #include "elements/clock.h"
 #include "elements/switch.h"
@@ -53,9 +54,22 @@ void turn_on()
 
 void turn_off()
 {
-    ttgo->closeBL();
-    ttgo->stopLvglTick();
-    ttgo->displaySleep();
+    if (Settings::config.powerSaver) {
+		ttgo->displaySleep();
+		ttgo->power->setPowerOutPut(AXP202_LDO3, false);
+		ttgo->power->setPowerOutPut(AXP202_LDO4, false);
+		ttgo->power->setPowerOutPut(AXP202_LDO2, false);
+		// The following power channels are not used
+		ttgo->power->setPowerOutPut(AXP202_EXTEN, false);
+		ttgo->power->setPowerOutPut(AXP202_DCDC2, false);
+
+		esp_sleep_enable_ext1_wakeup(GPIO_SEL_35, ESP_EXT1_WAKEUP_ALL_LOW);
+		esp_deep_sleep_start();
+    } else {
+        ttgo->closeBL();
+        ttgo->stopLvglTick();
+        ttgo->displaySleep();
+    }
 }
 
 void setup()
@@ -187,7 +201,6 @@ void loop()
         if (prevPressing) {
             // On Release Event
             if (menu == Menu::Home) {
-                Serial.println("Opening apps");
                 Apps::activeApp = Apps::apps[0];
                 menu = Menu::App;
             }
