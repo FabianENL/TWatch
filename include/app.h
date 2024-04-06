@@ -12,18 +12,14 @@ public:
     {
     }
 
+    void preinit(lv_obj_t* parent) { m_parent = parent; }
     virtual void init() { }
     virtual void onEvent(Event& event) { }
     virtual void update() { }
 
-    void registerLvObj(lv_obj_t* obj)
-    {
-        m_objects.push_back(obj);
-    }
-
     String getName() const { return m_name; }
-    const std::vector<lv_obj_t*>& getObjects() const { return m_objects; }
+    lv_obj_t* getParent() const { return m_parent; }
 private:
     String m_name;
-    std::vector<lv_obj_t*> m_objects;
+    lv_obj_t* m_parent;
 };

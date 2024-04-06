@@ -11,6 +11,7 @@
 class Apps : public App {
 public:
     static std::vector<App*> apps;
+    static App* activeApp;
 
     Apps()
         : App("Apps")
@@ -18,11 +19,8 @@ public:
     }
 
     virtual void init() override;
-    virtual void onEvent(Event& event) override;
-    virtual void update() override;
 
 private:
-    bool onMoveEvent(MoveEvent& event);
     void listCallback(String txt);
 
 private:

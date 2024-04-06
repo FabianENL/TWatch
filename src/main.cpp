@@ -2,6 +2,7 @@
 
 #include "app.h"
 #include "apps/apps.h"
+#include "elements/battery.h"
 #include "elements/clock.h"
 #include "event/inputevent.h"
 
@@ -20,30 +21,23 @@ LV_IMG_DECLARE(batman);
 
 QueueHandle_t g_event_queue_handle = NULL;
 
-int updateTimer = 0;
 int sleepTimer = 0;
-bool irq = false;
-int16_t scrollY;
 int16_t prevX, prevY;
 Menu menu = Menu::Home;
 ClockDisplay clockObj;
+Battery battery;
 
-bool lenergy = false;
 bool pressing = false;
 bool prevPressing = false;
 int16_t startX, startY;
 
-App* activeApp = nullptr;
 lv_obj_t* background = nullptr;
 
 void home()
 {
     menu = Menu::Home;
-    if (activeApp) {
-        for (lv_obj_t* obj : activeApp->getObjects()) {
-            lv_obj_set_hidden(obj, true);
-        }
-    }
+    if (Apps::activeApp)
+        lv_obj_set_hidden(Apps::activeApp->getParent(), true);
 }
 
 void turn_on()
@@ -76,6 +70,17 @@ void setup()
     ttgo->openBL(); // Enable the backlight
     ttgo->bl->adjust(25);
 
+    // Dark theme
+    lv_theme_t* th = lv_theme_material_init(
+        LV_THEME_DEFAULT_COLOR_PRIMARY,
+        LV_THEME_DEFAULT_COLOR_SECONDARY,
+        LV_THEME_MATERIAL_FLAG_DARK,
+        lv_theme_get_font_small(),
+        lv_theme_get_font_normal(),
+        lv_theme_get_font_subtitle(),
+        lv_theme_get_font_title());
+    lv_theme_set_act(th);
+
     sleepTimer = ttgo->rtc->getDateTime().second;
     ttgo->power->adc1Enable(AXP202_BATT_VOL_ADC1 | AXP202_BATT_CUR_ADC1 | AXP202_VBUS_VOL_ADC1 | AXP202_VBUS_CUR_ADC1, AXP202_ON);
     ttgo->power->enableIRQ(AXP202_VBUS_REMOVED_IRQ | AXP202_VBUS_CONNECT_IRQ | AXP202_CHARGING_FINISHED_IRQ, AXP202_ON);
@@ -92,19 +97,6 @@ void setup()
         },
         FALLING);
 
-    pinMode(TOUCH_INT, INPUT);
-    attachInterrupt(
-        TOUCH_INT, [] {
-            if (!ttgo->bl->isOn()) {
-                uint8_t data = Q_EVENT_ON;
-                BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-                xQueueSendFromISR(g_event_queue_handle, &data, &xHigherPriorityTaskWoken);
-                if (xHigherPriorityTaskWoken)
-                    portYIELD_FROM_ISR();
-            }
-        },
-        FALLING);
-
     // Check if the RTC clock matches, if not, use compile time
     ttgo->rtc->check();
 
@@ -116,19 +108,21 @@ void setup()
     lv_obj_align(background, NULL, LV_ALIGN_CENTER, 0, 0);
 
     clockObj.init(background, LV_ALIGN_IN_TOP_RIGHT, -15, 20);
+    battery.init(background, LV_ALIGN_IN_BOTTOM_LEFT);
 
     for (App* app : Apps::apps) {
+        lv_obj_t* parent = lv_obj_create(lv_scr_act(), NULL);
+        lv_obj_set_size(parent, 240, 240);
+        lv_obj_set_hidden(parent, true);
+        app->preinit(parent);
         app->init();
-
-        // Hide all the generated objects by the app
-        for (lv_obj_t* obj : app->getObjects()) {
-            lv_obj_set_hidden(obj, true);
-        }
     }
 }
 
 void loop()
 {
+    uint64_t start = millis();
+
     ttgo->power->clearIRQ();
 
     uint8_t data;
@@ -149,6 +143,8 @@ void loop()
     if (!ttgo->bl->isOn())
         return;
 
+    uint32_t expected = lv_task_handler();
+
     // After 5 seconds, shutdown
     int timeDiff = ttgo->rtc->getDateTime().second - sleepTimer;
     if (timeDiff < 0)
@@ -164,9 +160,9 @@ void loop()
     if (pressing) {
         if (!prevPressing) {
             // On Press event
-            if (activeApp) {
+            if (Apps::activeApp) {
                 PressEvent e(x, y);
-                activeApp->onEvent(e);
+                Apps::activeApp->onEvent(e);
             }
             startX = x;
             startY = y;
@@ -174,9 +170,9 @@ void loop()
 
         if (x != prevX || y != prevY) {
             // On Move Event
-            if (activeApp) {
+            if (Apps::activeApp) {
                 MoveEvent e(x, y, startX, startY);
-                activeApp->onEvent(e);
+                Apps::activeApp->onEvent(e);
             }
         }
 
@@ -189,13 +185,13 @@ void loop()
             // On Release Event
             if (menu == Menu::Home) {
                 Serial.println("Opening apps");
-                activeApp = Apps::apps[0];
+                Apps::activeApp = Apps::apps[0];
                 menu = Menu::App;
             }
 
-            if (activeApp) {
+            if (Apps::activeApp) {
                 ReleaseEvent e(x, y, startX, startY);
-                activeApp->onEvent(e);
+                Apps::activeApp->onEvent(e);
             }
 
             int16_t dx = x - startX;
@@ -203,16 +199,16 @@ void loop()
             // If the change of finger position is less than x amount pixels, then its a click
             if (abs(dx) < 10 && abs(dy) < 10) {
                 // On Click Event
-                if (activeApp) {
+                if (Apps::activeApp) {
                     ClickEvent e(x, y);
-                    activeApp->onEvent(e);
+                    Apps::activeApp->onEvent(e);
                 }
 
             } else {
                 // On Swipe Event
-                if (activeApp) {
+                if (Apps::activeApp) {
                     SwipeEvent e(x, y, startX, startY);
-                    activeApp->onEvent(e);
+                    Apps::activeApp->onEvent(e);
                 }
             }
         }
@@ -222,24 +218,27 @@ void loop()
     prevPressing = pressing;
 
     if (menu == Menu::Home) {
-        // drawTime();
-        clockObj.show();
         lv_obj_set_hidden(background, false);
+        for (App* app : Apps::apps)
+            lv_obj_set_hidden(app->getParent(), true);
     } else if (menu == Menu::App) {
-        clockObj.hide();
-        lv_obj_set_hidden(background, true);
-        if (!activeApp) {
+        if (!Apps::activeApp) {
             // If no app is active, then fallback to the home menu
             home();
         } else {
-            // Update the active app
-            for (lv_obj_t* obj : activeApp->getObjects()) {
-                lv_obj_set_hidden(obj, false);
-            }
+            lv_obj_set_hidden(background, true);
+            for (App* app : Apps::apps)
+                if (app != Apps::activeApp)
+                    lv_obj_set_hidden(app->getParent(), true);
 
-            activeApp->update();
+            // Update the active app
+            lv_obj_set_hidden(Apps::activeApp->getParent(), false);
+            Apps::activeApp->update();
         }
     }
 
-    lv_task_handler();
+    int64_t duration = millis() - start;
+    int32_t d = expected - duration;
+    if (d > 0)
+        delay(d);
 }
