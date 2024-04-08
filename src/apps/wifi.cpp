@@ -1,6 +1,7 @@
 #include "apps/wifi.h"
 
 #include "apps/settings.h"
+#include "elements/keyboard.h"
 
 void Wifi::init()
 {
@@ -29,6 +30,11 @@ void Wifi::init()
     lv_obj_align(m_scanningLabel, getParent(), LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_hidden(m_scanningLabel, true);
 
+    m_passwordTextarea = lv_textarea_create(getParent(), NULL);
+    lv_obj_set_size(m_passwordTextarea, LV_HOR_RES - 40, 30);
+    lv_obj_set_hidden(m_passwordTextarea, true);
+    lv_obj_align(m_passwordTextarea, getParent(), LV_ALIGN_IN_TOP_MID, 0, 20);
+
     WiFi.mode(WIFI_STA);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -44,4 +50,7 @@ void Wifi::init()
 
 void Wifi::listCallback(String txt)
 {
+    Serial.printf("Connecting to %s", txt);
+    lv_obj_set_hidden(m_passwordTextarea, false);
+    Keyboard::get()->setFocus(m_passwordTextarea);
 }

@@ -28,17 +28,12 @@ public:
         lv_obj_align(m_image, m_panel, LV_ALIGN_CENTER, -20, 0);
 
         lv_task_create(updateBattery, 30000, LV_TASK_PRIO_LOWEST, this);
+
+        update();
     }
 
-private:
-    static void updateBattery(lv_task_t* task)
+    void update()
     {
-        Battery* battery = static_cast<Battery*>(task->user_data);
-        if (battery == nullptr) {
-            Serial.println("Battery instance is nullptr");
-            return;
-        }
-
         int level = ttgo->power->getBattPercentage();
         const char* icon;
         if (ttgo->power->isChargeing()) {
@@ -56,8 +51,20 @@ private:
                 icon = LV_SYMBOL_BATTERY_EMPTY;
         }
 
-        lv_img_set_src(battery->m_image, icon);
-        lv_label_set_text_fmt(battery->m_percentage, "%d%%", level);
+        lv_img_set_src(m_image, icon);
+        lv_label_set_text_fmt(m_percentage, "%d%%", level);
+    }
+
+private:
+    static void updateBattery(lv_task_t* task)
+    {
+        Battery* battery = static_cast<Battery*>(task->user_data);
+        if (battery == nullptr) {
+            Serial.println("Battery instance is nullptr");
+            return;
+        }
+
+        battery->update();
     }
 
 private:

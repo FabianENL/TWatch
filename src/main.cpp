@@ -6,6 +6,7 @@
 #include "elements/battery.h"
 #include "elements/clock.h"
 #include "elements/switch.h"
+#include "elements/keyboard.h"
 #include "event/inputevent.h"
 
 enum {
@@ -55,6 +56,7 @@ void turn_on()
 
 void turn_off()
 {
+    Keyboard::get()->unfocus();
     if (Settings::config.powerSaver) {
 		ttgo->displaySleep();
 		ttgo->power->setPowerOutPut(AXP202_LDO3, false);
@@ -125,6 +127,7 @@ void setup()
 
     clockObj.init(background, LV_ALIGN_IN_TOP_RIGHT, -15, 20);
     battery.init(background, LV_ALIGN_IN_BOTTOM_LEFT);
+    Keyboard::get()->init();
 
     for (App* app : Apps::apps) {
         lv_obj_t* parent = lv_obj_create(lv_scr_act(), NULL);
@@ -171,7 +174,7 @@ void loop()
     if (timeDiff < 0)
         timeDiff += 60;
 
-    if (timeDiff > 5 && !Settings::forceOn) {
+    if (timeDiff > 5 && !Settings::forceOn && !Keyboard::get()->isVisible()) {
         turn_off();
         return;
     }
