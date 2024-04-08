@@ -34,6 +34,12 @@ void Wifi::init()
     lv_obj_set_size(m_passwordTextarea, LV_HOR_RES - 40, 30);
     lv_obj_set_hidden(m_passwordTextarea, true);
     lv_obj_align(m_passwordTextarea, getParent(), LV_ALIGN_IN_TOP_MID, 0, 20);
+    lv_obj_set_event_cb(m_passwordTextarea, [](lv_obj_t* obj, lv_event_t event) {
+        if (event == LV_EVENT_DEFOCUSED) {
+            Keyboard::get()->setFocus(NULL);
+            lv_obj_set_hidden(obj, true);
+        }
+    });
 
     WiFi.mode(WIFI_STA);
 
@@ -46,6 +52,18 @@ void Wifi::init()
         }
     },
         WiFiEvent_t::ARDUINO_EVENT_WIFI_SCAN_DONE);
+}
+
+void Wifi::onOpen()
+{
+    lv_obj_set_hidden(m_passwordTextarea, true);
+    m_list.clear();
+    Keyboard::get()->setFocus(NULL);
+}
+
+void Wifi::onClose()
+{
+    Keyboard::get()->setFocus(NULL);
 }
 
 void Wifi::listCallback(String txt)

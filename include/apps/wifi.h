@@ -23,6 +23,8 @@ public:
     }
 
     virtual void init() override;
+    virtual void onOpen() override;
+    virtual void onClose() override;
 private:
     void listCallback(String txt);
 

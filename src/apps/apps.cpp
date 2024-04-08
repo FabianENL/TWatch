@@ -25,7 +25,10 @@ void Apps::callback(String txt)
             Settings::forceOn = false;
             lv_obj_set_hidden(activeApp->getParent(), true);
             lv_obj_set_hidden(app->getParent(), false);
+            if (activeApp)
+                activeApp->onClose();
             activeApp = app;
+            activeApp->onOpen();
         }
     }
 }

@@ -56,7 +56,7 @@ void turn_on()
 
 void turn_off()
 {
-    Keyboard::get()->unfocus();
+    Keyboard::get()->setFocus(NULL);
     if (Settings::config.powerSaver) {
 		ttgo->displaySleep();
 		ttgo->power->setPowerOutPut(AXP202_LDO3, false);
