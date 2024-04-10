@@ -34,5 +34,4 @@ private:
     lv_obj_t* m_scanBtn;
     lv_obj_t* m_scanBtnLabel;
     lv_obj_t* m_scanningLabel;
-    lv_obj_t* m_passwordTextarea;
 };

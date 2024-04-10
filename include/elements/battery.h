@@ -27,7 +27,7 @@ public:
         lv_img_set_src(m_image, LV_SYMBOL_BATTERY_FULL);
         lv_obj_align(m_image, m_panel, LV_ALIGN_CENTER, -20, 0);
 
-        lv_task_create(updateBattery, 30000, LV_TASK_PRIO_LOWEST, this);
+        lv_task_create(updateBattery, 30000, LV_TASK_PRIO_MID, this);
 
         update();
     }

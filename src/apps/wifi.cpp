@@ -30,17 +30,6 @@ void Wifi::init()
     lv_obj_align(m_scanningLabel, getParent(), LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_hidden(m_scanningLabel, true);
 
-    m_passwordTextarea = lv_textarea_create(getParent(), NULL);
-    lv_obj_set_size(m_passwordTextarea, LV_HOR_RES - 40, 30);
-    lv_obj_set_hidden(m_passwordTextarea, true);
-    lv_obj_align(m_passwordTextarea, getParent(), LV_ALIGN_IN_TOP_MID, 0, 20);
-    lv_obj_set_event_cb(m_passwordTextarea, [](lv_obj_t* obj, lv_event_t event) {
-        if (event == LV_EVENT_DEFOCUSED) {
-            Keyboard::get()->setFocus(NULL);
-            lv_obj_set_hidden(obj, true);
-        }
-    });
-
     WiFi.mode(WIFI_STA);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -56,19 +45,26 @@ void Wifi::init()
 
 void Wifi::onOpen()
 {
-    lv_obj_set_hidden(m_passwordTextarea, true);
     m_list.clear();
-    Keyboard::get()->setFocus(NULL);
 }
 
 void Wifi::onClose()
 {
-    Keyboard::get()->setFocus(NULL);
 }
 
-void Wifi::listCallback(String txt)
+void keyboardCallback(String ssid, bool canceled)
 {
-    Serial.printf("Connecting to %s", txt);
-    lv_obj_set_hidden(m_passwordTextarea, false);
-    Keyboard::get()->setFocus(m_passwordTextarea);
+
+}
+
+void Wifi::listCallback(String ssid)
+{
+    Serial.printf("Connecting to %s", ssid);
+    Keyboard::getText([ssid](String password, bool success) {
+        if (!success)
+            return;
+
+        WiFi.begin(ssid, password);
+        ttgo->rtc->syncToSystem();
+    });
 }
