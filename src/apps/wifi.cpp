@@ -31,11 +31,15 @@ void Wifi::init()
     lv_obj_set_hidden(m_scanningLabel, true);
 
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
         Settings::forceOn = false;
         lv_obj_set_hidden(m_scanningLabel, true);
         int16_t len = WiFi.scanComplete();
+        if (len <= 0)
+            return;
+
         for (int16_t i = 0; i < len; i++) {
             m_list.add(WiFi.SSID(i), (void*)LV_SYMBOL_WIFI);
         }
@@ -45,16 +49,22 @@ void Wifi::init()
 
 void Wifi::onOpen()
 {
-    m_list.clear();
+    if (WiFi.scanComplete() == WIFI_SCAN_FAILED) {
+        lv_obj_set_hidden(m_scanningLabel, true);
+        m_list.clear();
+    }
 }
 
 void Wifi::onClose()
 {
+    if (WiFi.scanComplete() == WIFI_SCAN_FAILED) {
+        lv_obj_set_hidden(m_scanningLabel, true);
+        m_list.clear();
+    }
 }
 
 void keyboardCallback(String ssid, bool canceled)
 {
-
 }
 
 void Wifi::listCallback(String ssid)
@@ -63,8 +73,7 @@ void Wifi::listCallback(String ssid)
     Keyboard::getText([ssid](String password, bool success) {
         if (!success)
             return;
-
+        Serial.printf("ssid: %s, password: %s", ssid, password);
         WiFi.begin(ssid, password);
-        ttgo->rtc->syncToSystem();
     });
 }

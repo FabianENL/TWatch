@@ -7,7 +7,7 @@
 #include "elements/clock.h"
 #include "elements/switch.h"
 #include "elements/keyboard.h"
-#include "elements/wifi.h"
+#include "elements/wifielement.h"
 #include "event/inputevent.h"
 
 enum {
@@ -131,7 +131,7 @@ void setup()
 
     clockObj.init(background, LV_ALIGN_IN_TOP_RIGHT, -15, 20);
     battery.init(background, LV_ALIGN_IN_BOTTOM_LEFT);
-    wifiElement.init(background, LV_ALIGN_IN_BOTTOM_LEFT, 80, 0);
+    wifiElement.init(background, LV_ALIGN_IN_BOTTOM_LEFT, 70, 0);
 
     for (App* app : Apps::apps) {
         lv_obj_t* parent = lv_obj_create(lv_scr_act(), NULL);

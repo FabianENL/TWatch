@@ -14,7 +14,9 @@ public:
     {
         m_image = lv_img_create(parent, NULL);
         lv_img_set_src(m_image, LV_SYMBOL_WIFI);
-        lv_obj_align(m_image, parent, LV_ALIGN_CENTER, -20, 0);
+        lv_obj_align(m_image, parent, align, x, y);
+        lv_obj_set_style_local_image_recolor(m_image, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+        lv_obj_set_hidden(m_image, true);
 
         lv_task_create(updateWifi, 2000, LV_TASK_PRIO_MID, this);
 
